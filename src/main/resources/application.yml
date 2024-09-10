@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: myAI
+
+server:
+  port: 8024
+
+# ??????
+knife4j:
+  enable: true
+  openapi:
+    title: "????"
+    version: 1.0
+    group:
+      default:
+        api-rule: package
+        api-rule-resources:
+          - com.myAI.myAI.controller
+
+
+ai:
+  apiKey: "e6b5fa664ff13a58f900355e8759b8d3.zX7Gif59H4yDbY9a"
+
