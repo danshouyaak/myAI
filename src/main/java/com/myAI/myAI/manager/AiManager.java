@@ -125,13 +125,7 @@ public class AiManager {
      */
     public Flowable<ModelData> doStreamRequest(List<ChatMessage> messages, Float temperature) {
         // 构建请求
-        ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest
-                .builder()
-                .model(Constants.ModelChatGLM4)
-                .stream(Boolean.TRUE)
-                .temperature(temperature)
-                .invokeMethod(Constants.invokeMethod)
-                .messages(messages).build();
+        ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder().model(Constants.ModelChatGLM4).stream(Boolean.TRUE).temperature(temperature).invokeMethod(Constants.invokeMethod).messages(messages).build();
         try {
             ModelApiResponse invokeModelApiResp = clientV4.invokeModelApi(chatCompletionRequest);
             return invokeModelApiResp.getFlowable();

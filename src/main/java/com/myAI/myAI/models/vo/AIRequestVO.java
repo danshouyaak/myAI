@@ -1,4 +1,4 @@
-package com.myAI.myAI.model.vo;
+package com.myAI.myAI.models.vo;
 
 import lombok.Data;
 
@@ -7,7 +7,7 @@ public class AIRequestVO {
     /**
      * 模型id
      */
-    private String modelId;
+    private long modelId;
     /**
      * 聊天内容
      */
