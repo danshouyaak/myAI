@@ -17,6 +17,7 @@ import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,6 +50,9 @@ public class AIChatController {
 
     @Resource
     private MyMessageProducer myMessageProducer;
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
 
     /**
      * sse 流式调用
@@ -149,6 +153,9 @@ public class AIChatController {
 
     @GetMapping("/test")
     public String GetHello() {
-        return "hello";
+        redisTemplate.opsForValue().set("test", "hello");
+        redisTemplate.opsForValue().set("key", "value");
+        String value = redisTemplate.opsForValue().get("key");
+        return value;
     }
 }
