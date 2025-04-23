@@ -1,22 +1,17 @@
 package com.myAI.myAI.models.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
- * @TableName message
+ * 用户处理时间格式
  */
-@TableName(value ="message")
 @Data
-public class Message implements Serializable {
-    /**
-     * id
-     */
-    @TableId(type = IdType.ASSIGN_ID)
+public class MessageFormat implements Serializable {
+
     private Long messageId;
 
     private String conversationId;
@@ -25,7 +20,7 @@ public class Message implements Serializable {
 
     private Object messageType;
 
-    private Date sendTime;
+    private String sendTime;
 
     @TableLogic
     private Integer isDeleted;

@@ -1,5 +1,7 @@
 package com.myAI.myAI.controller;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.google.gson.Gson;
 import com.myAI.myAI.common.AIModel;
 import com.myAI.myAI.common.ErrorCode;
@@ -129,7 +131,6 @@ public class AIChatController {
 //            发送给mq
             myMessageProducer.sedMessage(gson.toJson(userMsg));
             myMessageProducer.sedMessage(gson.toJson(AIMsg));
-
             sseEmitter.complete();
         }).subscribe();
 
@@ -152,10 +153,22 @@ public class AIChatController {
     }
 
     @GetMapping("/test")
-    public String GetHello() {
-        redisTemplate.opsForValue().set("test", "hello");
-        redisTemplate.opsForValue().set("key", "value");
-        String value = redisTemplate.opsForValue().get("key");
-        return value;
+    public Date GetHello() {
+        // 获取当前时间并格式化为目标格式
+        DateTime now = DateUtil.date();
+        String formattedDate = DateUtil.format(now, "MMM dd, yyyy hh:mm:ss a");
+
+        // 输出格式化后的字符串
+        System.out.println(formattedDate);
+
+        // 如果需要将格式化后的字符串重新转换为 Date 对象存储
+        Date dateToSend = DateUtil.parse(formattedDate, "MMM dd, yyyy hh:mm:ss a");
+
+        // 设置到 AIMsg 对象中
+//        AIMsg.setSendTime(dateToSend);
+
+        // 验证存储的 Date 对象
+        System.out.println("Stored Date: " + DateUtil.format(dateToSend, "yyyy-MM-dd HH:mm:ss"));
+    return dateToSend;
     }
 }
