@@ -11,10 +11,12 @@
             <result property="messageType" column="messageType" jdbcType="OTHER"/>
             <result property="sendTime" column="sendTime" jdbcType="TIMESTAMP"/>
             <result property="isDeleted" column="isDeleted" jdbcType="TINYINT"/>
+        <result property="aiId" column="aiId" jdbcType="BIGINT"/>
+        <result property="aiUrl" column="aiUrl" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         messageId,conversationId,messageContent,
-        messageType,sendTime,isDeleted
+        messageType,sendTime,isDeleted,aiId,aiUrl
     </sql>
 </mapper>

@@ -12,18 +12,14 @@ import java.util.Date;
 @Data
 public class MessageFormat implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private Long messageId;
-
     private String conversationId;
-
     private String messageContent;
-
     private Object messageType;
-
     private String sendTime;
-
+    private Long aiId;
+    private String aiUrl;
     @TableLogic
     private Integer isDeleted;
-
-    private static final long serialVersionUID = 1L;
 }

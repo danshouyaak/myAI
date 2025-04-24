@@ -12,4 +12,9 @@ public class AIRequestVO {
      * 聊天内容
      */
     private String content;
+
+    /**
+     * 会话id
+     */
+    private String conversationId;
 }

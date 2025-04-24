@@ -54,3 +54,13 @@ mybatis-plus:
 ai:
   apiKey: "7d87de8424d64f239da60fcd2fbf8ea8.mhKGQxgcVD21XoSW"
 
+langchain4j:
+  community:
+    dashscope:
+      chat-model:
+        api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
+        model-name: "qwen-plus"
+
+      streaming-chat-model:
+        api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
+        model-name: "qwen-plus"
