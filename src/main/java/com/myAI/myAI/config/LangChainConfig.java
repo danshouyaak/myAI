@@ -42,7 +42,7 @@ public class LangChainConfig {
         String chat(@MemoryId Long memoryId, @UserMessage String userMessage);
 
         // 流式响应
-        TokenStream stream(@MemoryId Long memoryId, @UserMessage String userMessage);
+        TokenStream stream(@MemoryId String memoryId, @UserMessage String userMessage);
 
     }
 }

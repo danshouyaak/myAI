@@ -59,8 +59,8 @@ langchain4j:
     dashscope:
       chat-model:
         api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
-        model-name: "qwen-plus"
+        model-name: "qwen-max"
 
       streaming-chat-model:
         api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
-        model-name: "qwen-plus"
+        model-name: "qwen-max"

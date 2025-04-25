@@ -73,12 +73,6 @@ public class AIChatController {
     @Resource
     private LangChainConfig.AssistantUnique assistantUnique;
 
-    @Resource
-    private QwenChatModel qwenChatModel;
-
-    @Resource
-    private StreamingChatLanguageModel streamingChatLanguageModel;
-
     /**
      * sse 流式调用
      *
@@ -169,41 +163,43 @@ public class AIChatController {
      * 流式回复
      *
      * @param request
-     * @param requestVO
+     * @param modelId
+     * @param content
+     * @param conversationId
      * @return
      */
 
-    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> StreamChat(@RequestParam AIRequestVO requestVO, HttpServletRequest request) {
+    @GetMapping(value = "/stream", produces = "text/stream;charset=UTF-8")
+    public Flux<String> StreamChat(String content, long modelId, String conversationId, HttpServletRequest request) {
         //        获取当前用户
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        String content = requestVO.getContent();
+//        String content = requestVO.getContent();
         if (StringUtils.isBlank(content)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
 //        会话id
-        String conversationId = requestVO.getConversationId();
+//        String conversationId = requestVO.getConversationId();
         if (StringUtils.isBlank(conversationId)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "会话id不能为空");
         }
 //        模型id
-        long modelId = requestVO.getModelId();
+//        long modelId = requestVO.getModelId();
         if (modelId <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "模型id不能为空");
         }
 
 
         Long userId = loginUser.getId();  // 获取当前用户ID 记忆id
-        String message = requestVO.getContent();  // 获取用户输入的消息
+//        String message = requestVO.getContent();  // 获取用户输入的消息
         log.info("请求内容stream：{}", content);
 
         // 创建一个缓存变量来存储完整信息
         AtomicReference<StringBuilder> completeMessageBuilder = new AtomicReference<>(new StringBuilder());
 
-        TokenStream stream = assistantUnique.stream(userId, message);
+        TokenStream stream = assistantUnique.stream(conversationId, content);
         return Flux.create(sink -> {
             stream.onPartialResponse(partialResponse -> {
                 System.out.println("partialResponse:" + partialResponse);
@@ -211,10 +207,11 @@ public class AIChatController {
                 sink.next(partialResponse);
             });
             stream.onCompleteResponse(response -> {
+//                发送完成
+
                 // 在流完成时获取完整信息
                 String completeMessage = completeMessageBuilder.get().toString();
                 log.info("完整信息：{}", completeMessage);
-
 
 //                    封装用户发送信息
                 Message userMsg = new Message();
@@ -224,23 +221,25 @@ public class AIChatController {
                 userMsg.setMessageType("user");
                 userMsg.setMessageContent(content);
                 userMsg.setSendTime(new Date());
-                userMsg.setAiId(requestVO.getModelId());
+                userMsg.setAiId(modelId);
 
                 AIMsg.setConversationId(conversationId);
                 AIMsg.setMessageType("ai");
                 AIMsg.setMessageContent(completeMessage);
                 AIMsg.setSendTime(new Date());
-                AIMsg.setAiId(requestVO.getModelId());
+                AIMsg.setAiId(modelId);
 
                 Gson gson = new Gson();
 //            发送给mq
                 myMessageProducer.sedMessage(gson.toJson(userMsg));
                 myMessageProducer.sedMessage(gson.toJson(AIMsg));
+                sink.complete();
                 System.out.println("完成");
             });
             stream.onError(error -> {
                 System.out.println("错误");
             });
+            stream.start();
         });
     }
 
@@ -266,20 +265,17 @@ public class AIChatController {
     }
 
     @GetMapping("/test2")
-    public Flux<String> GetHello2(@RequestParam(defaultValue = "你是谁") String message,@RequestParam(defaultValue = "1") Long  memoryId) {
+    public Flux<String> GetHello2(@RequestParam(defaultValue = "你是谁") String message, @RequestParam(defaultValue = "1") Long memoryId) {
 
         return Flux.create(sink -> {
-            assistantUnique.stream(memoryId, message)
-                    .onPartialResponse(partialResponse -> {
-                        System.out.println("partialResponse:" + partialResponse);
-                        sink.next(partialResponse);
-                    })
-                    .onCompleteResponse(partialResponse -> {
-                        System.out.println("完成:" + partialResponse);
-                    })
-                    .onError(partialResponse -> {
-                        System.out.println("出错:" + partialResponse);
-                    });
+            assistantUnique.stream(String.valueOf(memoryId), message).onPartialResponse(partialResponse -> {
+                System.out.println("partialResponse:" + partialResponse);
+                sink.next(partialResponse);
+            }).onCompleteResponse(partialResponse -> {
+                System.out.println("完成:" + partialResponse);
+            }).onError(partialResponse -> {
+                System.out.println("出错:" + partialResponse);
+            });
 
         });
     }
