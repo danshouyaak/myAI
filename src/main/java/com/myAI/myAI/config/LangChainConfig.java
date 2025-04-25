@@ -1,15 +1,19 @@
 package com.myAI.myAI.config;
 
+import com.myAI.myAI.langchain.PersistentChatMemoryStore;
 import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.MemoryId;
-import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.*;
+import dev.langchain4j.store.memory.chat.redis.RedisChatMemoryStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.support.collections.RedisStore;
+
+import javax.annotation.Resource;
 
 @Configuration
 public class LangChainConfig {
@@ -17,16 +21,44 @@ public class LangChainConfig {
     @Bean
     public Assistant assistant(ChatLanguageModel qwenChatModel, StreamingChatLanguageModel qwenStreamingChatModel) {
         ChatMemory chatMemory = MessageWindowChatMemory.withMaxMessages(10);
-        Assistant assistant = AiServices.builder(Assistant.class).chatLanguageModel(qwenChatModel).streamingChatLanguageModel(qwenStreamingChatModel).chatMemory(chatMemory).build();
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatLanguageModel(qwenChatModel)
+                .streamingChatLanguageModel(qwenStreamingChatModel)
+                .chatMemory(chatMemory)
+                .build();
         return assistant;
     }
 
+
+
+
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
+
     // 记忆版
     @Bean
-    public AssistantUnique assistantUnique(ChatLanguageModel qwenChatModel, StreamingChatLanguageModel qwenStreamingChatModel) {
-//maxMessages 设置为 10，每次对话只保留 10 条消息
-        AssistantUnique assistant = AiServices.builder(AssistantUnique.class).chatLanguageModel(qwenChatModel).streamingChatLanguageModel(qwenStreamingChatModel).chatMemoryProvider(memoryId -> MessageWindowChatMemory.builder().maxMessages(10).id(memoryId).build()).build();
+    public AssistantUnique assistantUniqueStore(ChatLanguageModel qwenChatModel,
+                                                StreamingChatLanguageModel qwenStreamingChatModel) {
 
+        PersistentChatMemoryStore store = new PersistentChatMemoryStore(redisTemplate);
+
+        ChatMemoryProvider chatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
+                .id(memoryId)
+                .maxMessages(10)
+                .chatMemoryStore(store)
+                .build();
+
+        AssistantUnique assistant = AiServices.builder(AssistantUnique.class)
+                .chatLanguageModel(qwenChatModel)
+                .streamingChatLanguageModel(qwenStreamingChatModel)
+                .chatMemoryProvider(memoryId ->
+                        MessageWindowChatMemory.builder().maxMessages(10)
+                                .id(memoryId).build()
+                )
+                .chatMemoryProvider(chatMemoryProvider)
+                .build();
         return assistant;
     }
 
@@ -41,8 +73,9 @@ public class LangChainConfig {
 
         String chat(@MemoryId Long memoryId, @UserMessage String userMessage);
 
-        // 流式响应
-        TokenStream stream(@MemoryId String memoryId, @UserMessage String userMessage);
+        @SystemMessage("这是你的的角色 请严格遵守{{description}}")
+            // 流式响应
+        TokenStream stream(@MemoryId String memoryId, @UserMessage String userMessage, @V("description") String description);
 
     }
 }

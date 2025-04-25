@@ -60,8 +60,8 @@ public class OtherAIController {
     private AiManager aiManager;
 
     @GetMapping(value = "/stream_chat",produces ="text/stream;charset=UTF-8")
-    public Flux<String> GetHello2(@RequestParam String content, @RequestParam(defaultValue = "1") Long memoryId) {
-        TokenStream stream = assistantUnique.stream(String.valueOf(memoryId), content);
+    public Flux<String> GetHello2(@RequestParam(defaultValue = "你是谁") String content, @RequestParam(defaultValue = "1") Long memoryId) {
+        TokenStream stream = assistantUnique.stream(String.valueOf(memoryId), content,"你是一个人工智能名字叫小廖");
         return Flux.create(sink -> {
             stream.onPartialResponse(sink::next)
                     .onCompleteResponse(c -> {sink.complete();})

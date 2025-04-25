@@ -199,7 +199,13 @@ public class AIChatController {
         // 创建一个缓存变量来存储完整信息
         AtomicReference<StringBuilder> completeMessageBuilder = new AtomicReference<>(new StringBuilder());
 
-        TokenStream stream = assistantUnique.stream(conversationId, content);
+
+//        获取ai预设信息
+        AIModel aiModel = new AIModel();
+        String modelAIModelDescription = aiModel.getAIModel(modelId);
+        System.out.println(modelAIModelDescription);
+
+        TokenStream stream = assistantUnique.stream(conversationId, content,modelAIModelDescription);
         return Flux.create(sink -> {
             stream.onPartialResponse(partialResponse -> {
                 System.out.println("partialResponse:" + partialResponse);
@@ -268,7 +274,7 @@ public class AIChatController {
     public Flux<String> GetHello2(@RequestParam(defaultValue = "你是谁") String message, @RequestParam(defaultValue = "1") Long memoryId) {
 
         return Flux.create(sink -> {
-            assistantUnique.stream(String.valueOf(memoryId), message).onPartialResponse(partialResponse -> {
+            assistantUnique.stream(String.valueOf(memoryId), message, "你是一个AI助手").onPartialResponse(partialResponse -> {
                 System.out.println("partialResponse:" + partialResponse);
                 sink.next(partialResponse);
             }).onCompleteResponse(partialResponse -> {
@@ -276,7 +282,11 @@ public class AIChatController {
             }).onError(partialResponse -> {
                 System.out.println("出错:" + partialResponse);
             });
-
         });
+    }
+
+    @GetMapping("/test3")
+    private void test3() throws IOException {
+
     }
 }

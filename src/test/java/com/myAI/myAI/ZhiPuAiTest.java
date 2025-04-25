@@ -9,6 +9,7 @@ import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -74,5 +75,11 @@ public class ZhiPuAiTest {
         Thread.sleep(10000L);
     }
 
+    @Resource
+    private RedisTemplate<String,String> redisTemplate;
 
+    @Test
+    void testRedis() throws InterruptedException {
+        redisTemplate.opsForValue().set("1","1");
+    }
 }
