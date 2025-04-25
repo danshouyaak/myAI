@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.myAI.myAI.mapper.AiMapper">
+
+    <resultMap id="BaseResultMap" type="com.myAI.myAI.models.entity.Ai">
+            <id property="aiId" column="aiId" jdbcType="BIGINT"/>
+            <result property="aiName" column="aiName" jdbcType="VARCHAR"/>
+            <result property="aiUrl" column="aiUrl" jdbcType="VARCHAR"/>
+            <result property="modelVersion" column="modelVersion" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+            <result property="updatedTime" column="updatedTime" jdbcType="TIMESTAMP"/>
+            <result property="isDeleted" column="isDeleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        aiId,aiName,aiUrl,
+        modelVersion,description,createdTime,
+        updatedTime,isDeleted
+    </sql>
+</mapper>

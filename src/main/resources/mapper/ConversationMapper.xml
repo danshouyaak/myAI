@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.myAI.myAI.mapper.ConversationMapper">
+
+    <resultMap id="BaseResultMap" type="com.myAI.myAI.models.entity.Conversation">
+        <id property="conversationId" column="conversationId" jdbcType="VARCHAR"/>
+        <result property="userId" column="userId" jdbcType="VARCHAR"/>
+        <result property="aiId" column="aiId" jdbcType="VARCHAR"/>
+        <result property="startTime" column="startTime" jdbcType="TIMESTAMP"/>
+        <result property="endTime" column="endTime" jdbcType="TIMESTAMP"/>
+        <result property="conversationState" column="conversationState" jdbcType="OTHER"/>
+        <result property="isDeleted" column="isDeleted" jdbcType="TINYINT"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="updatedTime" column="updatedTime" jdbcType="TIMESTAMP"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        conversationId,userId,aiId,
+        startTime,endTime,conversationState,
+        isDeleted,createdTime,updatedTime,description
+    </sql>
+</mapper>
