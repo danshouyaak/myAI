@@ -11,10 +11,19 @@ import com.myAI.myAI.models.entity.Message;
 import com.myAI.myAI.models.entity.User;
 import com.myAI.myAI.models.vo.AIRequestVO;
 import com.zhipu.oapi.service.v4.model.ModelData;
+import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.mcp.client.transport.McpTransport;
+import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
+import dev.langchain4j.model.output.Response;
 import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
+import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import io.reactivex.Flowable;
 import io.reactivex.functions.Cancellable;
 import io.reactivex.schedulers.Schedulers;
@@ -59,14 +68,58 @@ public class OtherAIController {
     @Resource
     private AiManager aiManager;
 
-    @GetMapping(value = "/stream_chat",produces ="text/stream;charset=UTF-8")
+
+    /**
+     * 匹配向量
+     *
+     * @param content
+     * @param memoryId
+     * @return
+     */
+    @GetMapping(value = "/stream_chat", produces = "text/stream;charset=UTF-8")
     public Flux<String> GetHello2(@RequestParam(defaultValue = "你是谁") String content, @RequestParam(defaultValue = "1") Long memoryId) {
-        TokenStream stream = assistantUnique.stream(String.valueOf(memoryId), content,"你是一个人工智能名字叫小廖");
+
+        InMemoryEmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+
+        QwenEmbeddingModel embeddingModel = QwenEmbeddingModel.builder().apiKey("sk-83365e2d612a4576b14ba1f823af2b10").build();
+
+
+        // 利用向量模型进行向量化， 然后存储向量到向量数据库
+        TextSegment segment1 = TextSegment.from("       预订航班:\n" + "                - 通过我们的网站或移动应用程序预订。\n" + "                - 预订时需要全额付款。\n" + "                - 确保个人信息（姓名、ID 等）的准确性，因为更正可能会产生 25 的费用。");
+        Embedding embedding1 = embeddingModel.embed(segment1).content();
+        embeddingStore.add(embedding1, segment1);
+
+
+        // 利用向量模型进行向量化， 然后存储向量到向量数据库
+        TextSegment segment2 = TextSegment.from(" 取消预订:\n" + "                - 最晚在航班起飞前 48 小时取消。\n" + "                - 取消费用：经济舱 75 美元，豪华经济舱 50 美元，商务舱 25 美元。\n" + "                - 退款将在 7 个工作日内处理。");
+        Embedding embedding2 = embeddingModel.embed(segment2).content();
+        embeddingStore.add(embedding2, segment2);
+
+        // 需要查询的内容 向量化
+        Embedding queryEmbedding = embeddingModel.embed("退票要多少钱").content();
+
+        // 去向量数据库查询
+        // 构建查询条件
+        EmbeddingSearchRequest build = EmbeddingSearchRequest.builder().queryEmbedding(queryEmbedding).maxResults(1).build();
+
+        // 查询
+        EmbeddingSearchResult<TextSegment> segmentEmbeddingSearchResult = embeddingStore.search(build);
+        segmentEmbeddingSearchResult.matches().forEach(embeddingMatch -> {
+            System.out.println(embeddingMatch.score()); // 0.8144288515898701
+            System.out.println(embeddingMatch.embedded().text()); // I like football
+
+        });
+
+
+//        McpTransport transport = new StdioMcpTransport.Builder()
+
+
+
+        TokenStream stream = assistantUnique.stream(String.valueOf(memoryId), content, "你是一个人工智能名字叫小廖");
         return Flux.create(sink -> {
-            stream.onPartialResponse(sink::next)
-                    .onCompleteResponse(c -> {sink.complete();})
-                    .onError(sink::error)
-                    .start();
+            stream.onPartialResponse(sink::next).onCompleteResponse(c -> {
+                sink.complete();
+            }).onError(sink::error).start();
         });
     }
 
@@ -92,7 +145,7 @@ public class OtherAIController {
 //    }
 
 
-    @GetMapping(value = "/sse",produces =  MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter GetHelloStream(@RequestParam(defaultValue = "你是谁") String content, @RequestParam(defaultValue = "1") Long memoryId) {
 //
         log.info("请求内容 sse：{}", content);

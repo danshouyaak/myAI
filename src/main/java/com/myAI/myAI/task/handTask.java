@@ -1,33 +1,30 @@
 package com.myAI.myAI.task;
 
 
+import dev.langchain4j.community.model.dashscope.QwenChatModel;
+import dev.langchain4j.mcp.McpToolProvider;
+import dev.langchain4j.mcp.client.DefaultMcpClient;
+import dev.langchain4j.mcp.client.McpClient;
+import dev.langchain4j.mcp.client.transport.McpTransport;
+import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.tool.ToolProvider;
 
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 
 public class handTask {
-    public static void main(String[] args) {
-//        ChatLanguageModel model = OpenAiChatModel
-//                .builder()
-//                .apiKey("demo")
-//                .modelName("gpt-4o-mini")
-//                .build();
-//
-//        String answer = model.chat("你好，你是谁？");
-//
-//        System.out.println(answer);
-//        ChatLanguageModel model = ZhipuAiChatModel
-//                .builder()
-//                .apiKey("7d87de8424d64f239da60fcd2fbf8ea8.mhKGQxgcVD21XoSW")
-//                .callTimeout(Duration.ofSeconds(60))
-//                .connectTimeout(Duration.ofSeconds(60))
-//                .writeTimeout(Duration.ofSeconds(60))
-//                .readTimeout(Duration.ofSeconds(60))
-//                .build();
-//
-//
-//        String chat = model.chat("你好，你是谁？");
-//        System.out.println(chat);
+    public static void main(String[] args) throws Exception {
+
+    }
+
+
+    interface Bot {
+
+        String chat(String userMessage);
+
     }
 }

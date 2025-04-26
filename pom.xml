@@ -154,7 +154,11 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-dashscope-spring-boot-starter</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-mcp</artifactId>
+            <version>1.0.0-alpha1</version>
+        </dependency>
 
     </dependencies>
 
@@ -181,6 +185,14 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>9</source>
+                    <target>9</target>
                 </configuration>
             </plugin>
         </plugins>

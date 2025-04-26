@@ -1,17 +1,17 @@
 package com.myAI.myAI.config;
 
 import com.myAI.myAI.langchain.PersistentChatMemoryStore;
+import com.myAI.myAI.langchain.service.ToolsService;
+import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.service.*;
-import dev.langchain4j.store.memory.chat.redis.RedisChatMemoryStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.support.collections.RedisStore;
 
 import javax.annotation.Resource;
 
@@ -40,9 +40,10 @@ public class LangChainConfig {
     // 记忆版
     @Bean
     public AssistantUnique assistantUniqueStore(ChatLanguageModel qwenChatModel,
-                                                StreamingChatLanguageModel qwenStreamingChatModel) {
+                                                StreamingChatLanguageModel qwenStreamingChatModel, ToolsService toolsService, McpToolProvider mcpToolProvider) {
 
         PersistentChatMemoryStore store = new PersistentChatMemoryStore(redisTemplate);
+
 
         ChatMemoryProvider chatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
                 .id(memoryId)
@@ -50,13 +51,12 @@ public class LangChainConfig {
                 .chatMemoryStore(store)
                 .build();
 
+
         AssistantUnique assistant = AiServices.builder(AssistantUnique.class)
+                .toolProvider(mcpToolProvider)
+//                .tools(mcpToolProvider)
                 .chatLanguageModel(qwenChatModel)
                 .streamingChatLanguageModel(qwenStreamingChatModel)
-                .chatMemoryProvider(memoryId ->
-                        MessageWindowChatMemory.builder().maxMessages(10)
-                                .id(memoryId).build()
-                )
                 .chatMemoryProvider(chatMemoryProvider)
                 .build();
         return assistant;

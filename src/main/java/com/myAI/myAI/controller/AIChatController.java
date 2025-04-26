@@ -68,9 +68,6 @@ public class AIChatController {
     private MyMessageProducer myMessageProducer;
 
     @Resource
-    private RedisTemplate<String, String> redisTemplate;
-
-    @Resource
     private LangChainConfig.AssistantUnique assistantUnique;
 
     /**
@@ -287,6 +284,5 @@ public class AIChatController {
 
     @GetMapping("/test3")
     private void test3() throws IOException {
-
     }
 }
