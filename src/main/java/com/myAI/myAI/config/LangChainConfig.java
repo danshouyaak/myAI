@@ -2,18 +2,29 @@ package com.myAI.myAI.config;
 
 import com.myAI.myAI.langchain.PersistentChatMemoryStore;
 import com.myAI.myAI.langchain.service.ToolsService;
+import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.service.*;
+import dev.langchain4j.service.tool.ToolProvider;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+import dev.langchain4j.web.search.WebSearchTool;
+import dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class LangChainConfig {
@@ -29,20 +40,36 @@ public class LangChainConfig {
         return assistant;
     }
 
-
-
-
-
     @Resource
     private RedisTemplate<String, String> redisTemplate;
+
+
+//    创建一个向量数据库
+    @Bean
+    public EmbeddingStore embeddingStore() {
+        return new InMemoryEmbeddingStore();
+    }
+
 
 
     // 记忆版
     @Bean
     public AssistantUnique assistantUniqueStore(ChatLanguageModel qwenChatModel,
-                                                StreamingChatLanguageModel qwenStreamingChatModel, ToolsService toolsService, McpToolProvider mcpToolProvider) {
+                                                StreamingChatLanguageModel qwenStreamingChatModel,
+                                                ToolProvider toolProvider,
+                                                SearchApiWebSearchEngine searchApiWebSearchEngine,
+                                                EmbeddingStore embeddingStore,
+                                                QwenEmbeddingModel qwenEmbeddingModel) {
 
         PersistentChatMemoryStore store = new PersistentChatMemoryStore(redisTemplate);
+
+//        内容检索器
+        ContentRetriever contentRetriever = EmbeddingStoreContentRetriever.builder()
+                .embeddingStore(embeddingStore)  // 绑定向量数据库
+                .embeddingModel(qwenEmbeddingModel)   // 绑定向量模型
+                .maxResults(5) // 最相似的5个结果
+                .minScore(0.6) // 只找相似度在0.6以上的内容
+                .build();
 
 
         ChatMemoryProvider chatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
@@ -53,11 +80,12 @@ public class LangChainConfig {
 
 
         AssistantUnique assistant = AiServices.builder(AssistantUnique.class)
-                .toolProvider(mcpToolProvider)
-//                .tools(mcpToolProvider)
+//                .toolProvider(toolProvider)
+                .tools(new ToolsService(),new WebSearchTool(searchApiWebSearchEngine))
                 .chatLanguageModel(qwenChatModel)
                 .streamingChatLanguageModel(qwenStreamingChatModel)
                 .chatMemoryProvider(chatMemoryProvider)
+                .contentRetriever(contentRetriever)  // 绑定内容检索器
                 .build();
         return assistant;
     }

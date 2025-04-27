@@ -64,4 +64,16 @@ langchain4j:
       streaming-chat-model:
         api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
         model-name: "qwen-max"
+
+      embedding-model:
+        api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
+
 BAIDU_MAP_API_KEY: "0QXrtk2dl85xQAjsjhfXw9A1dSTSzLQ3"
+#sk-b8cb511c4eda49d1a658d33e37eb2f53
+BOCHA_API_KEY: "sk-b8cb511c4eda49d1a658d33e37eb2f53"
+
+#37109a07-e86e-4a7a-b95c-153af5509ab7
+SERCH_API_KEY: "iEhqbAsgcdzMzuXD6ALa9yU3"
+search:
+  engine: "baidu"
+  apiKey: ${SERCH_API_KEY}

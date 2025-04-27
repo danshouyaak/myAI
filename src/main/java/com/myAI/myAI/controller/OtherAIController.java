@@ -12,6 +12,9 @@ import com.myAI.myAI.models.entity.User;
 import com.myAI.myAI.models.vo.AIRequestVO;
 import com.zhipu.oapi.service.v4.model.ModelData;
 import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.loader.ClassPathDocumentLoader;
+import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.mcp.client.transport.McpTransport;
@@ -44,6 +47,8 @@ import reactor.core.publisher.Sinks;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -79,45 +84,48 @@ public class OtherAIController {
     @GetMapping(value = "/stream_chat", produces = "text/stream;charset=UTF-8")
     public Flux<String> GetHello2(@RequestParam(defaultValue = "你是谁") String content, @RequestParam(defaultValue = "1") Long memoryId) {
 
-        InMemoryEmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+        // 读取
+        Document document = ClassPathDocumentLoader.loadDocument("rag/math.txt", new TextDocumentParser());
+        System.out.println(document.text());
 
-        QwenEmbeddingModel embeddingModel = QwenEmbeddingModel.builder().apiKey("sk-83365e2d612a4576b14ba1f823af2b10").build();
+//        InMemoryEmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
+//        QwenEmbeddingModel embeddingModel = QwenEmbeddingModel.builder().apiKey("sk-83365e2d612a4576b14ba1f823af2b10").build();
 
-        // 利用向量模型进行向量化， 然后存储向量到向量数据库
-        TextSegment segment1 = TextSegment.from("       预订航班:\n" + "                - 通过我们的网站或移动应用程序预订。\n" + "                - 预订时需要全额付款。\n" + "                - 确保个人信息（姓名、ID 等）的准确性，因为更正可能会产生 25 的费用。");
-        Embedding embedding1 = embeddingModel.embed(segment1).content();
-        embeddingStore.add(embedding1, segment1);
-
-
-        // 利用向量模型进行向量化， 然后存储向量到向量数据库
-        TextSegment segment2 = TextSegment.from(" 取消预订:\n" + "                - 最晚在航班起飞前 48 小时取消。\n" + "                - 取消费用：经济舱 75 美元，豪华经济舱 50 美元，商务舱 25 美元。\n" + "                - 退款将在 7 个工作日内处理。");
-        Embedding embedding2 = embeddingModel.embed(segment2).content();
-        embeddingStore.add(embedding2, segment2);
-
-        // 需要查询的内容 向量化
-        Embedding queryEmbedding = embeddingModel.embed("退票要多少钱").content();
-
-        // 去向量数据库查询
-        // 构建查询条件
-        EmbeddingSearchRequest build = EmbeddingSearchRequest.builder().queryEmbedding(queryEmbedding).maxResults(1).build();
-
-        // 查询
-        EmbeddingSearchResult<TextSegment> segmentEmbeddingSearchResult = embeddingStore.search(build);
-        segmentEmbeddingSearchResult.matches().forEach(embeddingMatch -> {
-            System.out.println(embeddingMatch.score()); // 0.8144288515898701
-            System.out.println(embeddingMatch.embedded().text()); // I like football
-
-        });
-
-
+//
+//        // 利用向量模型进行向量化， 然后存储向量到向量数据库
+//        TextSegment segment1 = TextSegment.from("       预订航班:\n" + "                - 通过我们的网站或移动应用程序预订。\n" + "                - 预订时需要全额付款。\n" + "                - 确保个人信息（姓名、ID 等）的准确性，因为更正可能会产生 25 的费用。");
+//        Embedding embedding1 = embeddingModel.embed(segment1).content();
+//        embeddingStore.add(embedding1, segment1);
+//
+//
+//        // 利用向量模型进行向量化， 然后存储向量到向量数据库
+//        TextSegment segment2 = TextSegment.from(" 取消预订:\n" + "                - 最晚在航班起飞前 48 小时取消。\n" + "                - 取消费用：经济舱 75 美元，豪华经济舱 50 美元，商务舱 25 美元。\n" + "                - 退款将在 7 个工作日内处理。");
+//        Embedding embedding2 = embeddingModel.embed(segment2).content();
+//        embeddingStore.add(embedding2, segment2);
+//
+//        // 需要查询的内容 向量化
+//        Embedding queryEmbedding = embeddingModel.embed("退票要多少钱").content();
+//
+//        // 去向量数据库查询
+//        // 构建查询条件
+//        EmbeddingSearchRequest build = EmbeddingSearchRequest.builder().queryEmbedding(queryEmbedding).maxResults(1).build();
+//
+//        // 查询
+//        EmbeddingSearchResult<TextSegment> segmentEmbeddingSearchResult = embeddingStore.search(build);
+//        segmentEmbeddingSearchResult.matches().forEach(embeddingMatch -> {
+//            System.out.println(embeddingMatch.score()); // 0.8144288515898701
+//            System.out.println(embeddingMatch.embedded().text()); // I like football
+//
+//        });
 //        McpTransport transport = new StdioMcpTransport.Builder()
-
-
 
         TokenStream stream = assistantUnique.stream(String.valueOf(memoryId), content, "你是一个人工智能名字叫小廖");
         return Flux.create(sink -> {
-            stream.onPartialResponse(sink::next).onCompleteResponse(c -> {
+            stream.onPartialResponse(c->{
+                sink.next(c);
+                log.info("输出的信息为:" + c);
+            }).onCompleteResponse(c -> {
                 sink.complete();
             }).onError(sink::error).start();
         });
