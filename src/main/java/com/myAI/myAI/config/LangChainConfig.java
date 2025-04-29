@@ -2,9 +2,9 @@ package com.myAI.myAI.config;
 
 import com.myAI.myAI.langchain.PersistentChatMemoryStore;
 import com.myAI.myAI.langchain.service.ToolsService;
-import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
-import dev.langchain4j.mcp.McpToolProvider;
+import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
+import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +44,6 @@ public class LangChainConfig {
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 
-
 //    创建一个向量数据库
     @Bean
     public EmbeddingStore embeddingStore() {
@@ -51,12 +51,25 @@ public class LangChainConfig {
     }
 
 
+//    质谱ai
+    @Bean
+    public ZhipuAiStreamingChatModel zhipuAiStreamingChatModel() {
+        return  ZhipuAiStreamingChatModel.builder()
+                .apiKey("7d87de8424d64f239da60fcd2fbf8ea8.mhKGQxgcVD21XoSW")
+                .logRequests(true)
+                .logResponses(true)
+                .callTimeout(Duration.ofSeconds(60))
+                .connectTimeout(Duration.ofSeconds(60))
+                .writeTimeout(Duration.ofSeconds(60))
+                .readTimeout(Duration.ofSeconds(60))
+                .build();
+    }
+
 
     // 记忆版
     @Bean
     public AssistantUnique assistantUniqueStore(ChatLanguageModel qwenChatModel,
-                                                StreamingChatLanguageModel qwenStreamingChatModel,
-                                                ToolProvider toolProvider,
+                                                StreamingChatLanguageModel zhipuAiStreamingChatModel,
                                                 SearchApiWebSearchEngine searchApiWebSearchEngine,
                                                 EmbeddingStore embeddingStore,
                                                 QwenEmbeddingModel qwenEmbeddingModel) {
@@ -83,7 +96,7 @@ public class LangChainConfig {
 //                .toolProvider(toolProvider)
                 .tools(new ToolsService(),new WebSearchTool(searchApiWebSearchEngine))
                 .chatLanguageModel(qwenChatModel)
-                .streamingChatLanguageModel(qwenStreamingChatModel)
+                .streamingChatLanguageModel(zhipuAiStreamingChatModel)
                 .chatMemoryProvider(chatMemoryProvider)
                 .contentRetriever(contentRetriever)  // 绑定内容检索器
                 .build();
@@ -105,5 +118,6 @@ public class LangChainConfig {
             // 流式响应
         TokenStream stream(@MemoryId String memoryId, @UserMessage String userMessage, @V("description") String description);
 
+        TokenStream stream1(@MemoryId String memoryId, @UserMessage String userMessage);
     }
 }

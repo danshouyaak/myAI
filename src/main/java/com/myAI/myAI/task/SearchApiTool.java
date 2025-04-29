@@ -1,70 +1,29 @@
 package com.myAI.myAI.task;
 
-import dev.langchain4j.community.model.dashscope.QwenChatModel;
+
+import com.zhipu.oapi.service.v4.image.Image;
+import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
+import dev.langchain4j.community.model.zhipu.ZhipuAiImageModel;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.output.Response;
 
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.SystemMessage;
-import dev.langchain4j.web.search.WebSearchTool;
+import java.net.URI;
+import java.time.Duration;
 
-import dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class SearchApiTool {
-
-    interface Assistant {
-        @SystemMessage({
-                "You are a web search support agent.",
-                "If there is any event that has not happened yet",
-                "You MUST create a web search request with user query and",
-                "use the web search tool to search the web for organic web results.",
-                "Include the source link in your final response."
-        })
-        String answer(String userMessage);
-    }
-
-    private static final String SEARCHAPI_API_KEY = "iEhqbAsgcdzMzuXD6ALa9yU3";
-    private static final String OPENAI_API_KEY = "sk-83365e2d612a4576b14ba1f823af2b10";
-
     public static void main(String[] args) {
-        Map<String, Object> optionalParameters = new HashMap<>();
-        optionalParameters.put("gl", "us");
-        optionalParameters.put("hl", "en");
-        optionalParameters.put("google_domain", "google.com");
-
-        SearchApiWebSearchEngine searchEngine = SearchApiWebSearchEngine.builder()
-                .apiKey(SEARCHAPI_API_KEY)
-                .engine("Baidu")
-                .optionalParameters(optionalParameters)
-                .build();
-        ChatLanguageModel chatModel = QwenChatModel.builder()
-                .apiKey(OPENAI_API_KEY)
-                .modelName("qwen-max")
+        ChatLanguageModel zhipuAiChatModel = ZhipuAiChatModel.builder()
+                .apiKey("7d87de8424d64f239da60fcd2fbf8ea8.mhKGQxgcVD21XoSW")
+                .callTimeout(Duration.ofSeconds(60))
+                .connectTimeout(Duration.ofSeconds(60))
+                .writeTimeout(Duration.ofSeconds(60))
+                .readTimeout(Duration.ofSeconds(60))
                 .build();
 
-        WebSearchTool webTool = WebSearchTool.from(searchEngine);
-
-        Assistant assistant = AiServices.builder(Assistant.class)
-                .chatLanguageModel(chatModel)
-                .tools(webTool)
-                .build();
-
-        String answer = assistant.answer("My family is coming to visit me in Madrid next week, list the best tourist activities suitable for the whole family");
-        System.out.println(answer);
-        /*
-            Here are some of the best tourist activities suitable for the whole family in Madrid:
-            
-            1. **Parque del Retiro** - A beautiful public park where families can enjoy nature and various activities.
-            2. **Prado Museum** - A renowned art museum that can be fascinating for both adults and children.
-            3. **Mercado de San Miguel** - A market where you can explore and taste delicious Spanish food.
-            4. **Royal Palace** - Explore the grandeur of the Royal Palace of Madrid.
-            5. **Plaza Mayor** and **Puerta del Sol** - Historic squares with a vibrant atmosphere.
-            6. **Santiago Bernabeu Stadium** - Perfect for sports enthusiasts and soccer fans.
-            7. **Gran Via** - A famous street for shopping, entertainment, and sightseeing.
-            8. **National Archaeological Museum** - Discover Spain's rich history through archaeological artifacts.
-            9. **Templo de Debod** - An ancient Egyptian temple in the heart of Madrid.
-         */
+        String chat = zhipuAiChatModel.chat("你好");
+        System.out.println(chat);
     }
 }

@@ -12,7 +12,8 @@ public class InitMq {
 //        // 创建一个消息队列
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost("localhost");
+//            需要初始化的ip地址
+            factory.setHost("47.119.128.91");
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
             String EXCHANGE_NAME = UserMqConstant.USER_EXCHANGE_NAME;

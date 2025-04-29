@@ -34,25 +34,25 @@ public class MyAiApplication {
     }
 
 
-    @Bean
-    CommandLineRunner ingestTermOfServiceToVectorStore(QwenEmbeddingModel qwenEmbeddingModel,
-                                                       EmbeddingStore embeddingStore) throws URISyntaxException {
-
-        return args -> {
-            Document document = ClassPathDocumentLoader.loadDocument("rag/math.txt", new TextDocumentParser());
-
-            DocumentByLineSplitter splitter = new DocumentByLineSplitter(
-                    500,
-                    200
-            );
-            List<TextSegment> segments = splitter.split(document);
-
-            // 向量化
-            List<Embedding> embeddings = qwenEmbeddingModel.embedAll(segments).content();
-
-            // 存入
-            embeddingStore.addAll(embeddings,segments);
-
-        };
-    }
+//    @Bean
+//    CommandLineRunner ingestTermOfServiceToVectorStore(QwenEmbeddingModel qwenEmbeddingModel,
+//                                                       EmbeddingStore embeddingStore) throws URISyntaxException {
+//
+//        return args -> {
+//            Document document = ClassPathDocumentLoader.loadDocument("rag/math.txt", new TextDocumentParser());
+//
+//            DocumentByLineSplitter splitter = new DocumentByLineSplitter(
+//                    500,
+//                    200
+//            );
+//            List<TextSegment> segments = splitter.split(document);
+//
+//            // 向量化
+//            List<Embedding> embeddings = qwenEmbeddingModel.embedAll(segments).content();
+//
+//            // 存入
+//            embeddingStore.addAll(embeddings,segments);
+//
+//        };
+//    }
 }
