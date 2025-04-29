@@ -21,13 +21,16 @@ server:
   port: 8024
   servlet:
     session:
+      timeout: 604800  # 会话超时7天（单位：秒）
       cookie:
-        http-only: true
-        max-age: 2592000
         name: JSESSIONID
-        secure: true
-        same-site: none
+        max-age: 2592000  # Cookie有效期30天
+        http-only: true   # 推荐开启
+        secure: true      # 生产环境必须true (HTTPS)
+        same-site: lax    # 或 none (跨站场景)
         path: /
+#        domain: yourdomain.com # 明确指定域名
+
 
 
 # ??????
@@ -70,7 +73,7 @@ langchain4j:
 
 BAIDU_MAP_API_KEY: "0QXrtk2dl85xQAjsjhfXw9A1dSTSzLQ3"
 #sk-b8cb511c4eda49d1a658d33e37eb2f53
-BOCHA_API_KEY: "sk-b8cb511c4eda49d1a658d33e37eb2f53"
+#BOCHA_API_KEY: "sk-b8cb511c4eda49d1a658d33e37eb2f53"
 
 #37109a07-e86e-4a7a-b95c-153af5509ab7
 SERCH_API_KEY: "iEhqbAsgcdzMzuXD6ALa9yU3"

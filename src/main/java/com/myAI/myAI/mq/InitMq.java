@@ -12,6 +12,7 @@ public class InitMq {
 //        // 创建一个消息队列
         try {
             ConnectionFactory factory = new ConnectionFactory();
+//            需要初始化的ip地址
             factory.setHost("localhost");
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();

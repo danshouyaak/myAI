@@ -85,8 +85,8 @@ public class OtherAIController {
     public Flux<String> GetHello2(@RequestParam(defaultValue = "你是谁") String content, @RequestParam(defaultValue = "1") Long memoryId) {
 
         // 读取
-        Document document = ClassPathDocumentLoader.loadDocument("rag/math.txt", new TextDocumentParser());
-        System.out.println(document.text());
+//        Document document = ClassPathDocumentLoader.loadDocument("rag/math.txt", new TextDocumentParser());
+//        System.out.println(document.text());
 
 //        InMemoryEmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
@@ -120,7 +120,7 @@ public class OtherAIController {
 //        });
 //        McpTransport transport = new StdioMcpTransport.Builder()
 
-        TokenStream stream = assistantUnique.stream(String.valueOf(memoryId), content, "你是一个人工智能名字叫小廖");
+        TokenStream stream = assistantUnique.stream1(String.valueOf(memoryId), content);
         return Flux.create(sink -> {
             stream.onPartialResponse(c->{
                 sink.next(c);
@@ -153,7 +153,8 @@ public class OtherAIController {
 //    }
 
 
-    @GetMapping(value = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+//上线后取消接口
+//    @GetMapping(value = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter GetHelloStream(@RequestParam(defaultValue = "你是谁") String content, @RequestParam(defaultValue = "1") Long memoryId) {
 //
         log.info("请求内容 sse：{}", content);

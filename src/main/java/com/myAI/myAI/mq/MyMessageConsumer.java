@@ -6,10 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.gson.Gson;
 import com.myAI.myAI.common.ErrorCode;
 import com.myAI.myAI.exception.BusinessException;
-import com.myAI.myAI.models.entity.Ai;
-import com.myAI.myAI.models.entity.Message;
-import com.myAI.myAI.models.entity.MessageFormat;
+import com.myAI.myAI.models.entity.*;
 import com.myAI.myAI.service.AiService;
+import com.myAI.myAI.service.ConversationService;
 import com.myAI.myAI.service.MessageService;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +44,8 @@ public class MyMessageConsumer {
     @Resource
     private AiService aiService;
 
+    @Resource
+    private ConversationService conversationService;
 
     @RabbitListener(queues = {UserMqConstant.USER_QUEUE_NAME}, ackMode = "MANUAL")    // 指定监听哪个消息队列
     public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) throws IOException {
@@ -53,8 +54,28 @@ public class MyMessageConsumer {
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
         }
         Gson gson = new Gson();
-        Message messageObj = gson.fromJson(message, Message.class);
+        MessageUser messageObj = gson.fromJson(message, MessageUser.class);
 
+
+//         查找conversationId的信息
+        String conversationId = messageObj.getConversationId();
+        QueryWrapper<Conversation> conversationQueryWrapper = new QueryWrapper<>();
+        conversationQueryWrapper.eq("conversationId", conversationId);
+        Conversation one = conversationService.getById(conversationId);
+        if (one == null) {
+//            会话不存在 创建一个会话
+            Conversation conversation = new Conversation();
+            conversation.setConversationId(conversationId);
+            conversation.setUserId(String.valueOf(messageObj.getUserId()));
+            conversation.setAiId(String.valueOf(messageObj.getAiId()));
+            conversation.setConversationState("active");
+            conversation.setDescription(messageObj.getMessageContent());
+            boolean save = conversationService.save(conversation);
+            if (!save) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "创建会话失败");
+            }
+            messageObj.setConversationId(conversation.getConversationId());
+        }
 //        查找ai的信息
         Long aiId = messageObj.getAiId();
         if (aiId == null) {
@@ -68,12 +89,14 @@ public class MyMessageConsumer {
         }
 
         log.info("receive message: {}", messageObj);
-
 //        设置ai的url和id到message中
         messageObj.setAiId(ai.getAiId());
         messageObj.setAiUrl(ai.getAiUrl());
 
-        boolean save = messageService.save(messageObj);
+//        将messageObj 转为newMessage 存到数据库
+        Message newMessage = new Message();
+        BeanUtils.copyProperties(messageObj, newMessage);
+        boolean save = messageService.save(newMessage);
         if (!save) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "保存消息失败");
         }
@@ -85,8 +108,8 @@ public class MyMessageConsumer {
 
         messageFormat.setSendTime(formatTime);
         String key = REDISKEYMESSAGE + messageObj.getConversationId();
-
-        redisTemplate.opsForList().rightPush(key, gson.toJson(messageFormat));
+//        存入redis中
+//        redisTemplate.opsForList().rightPush(key, gson.toJson(messageFormat));
 
         /*
         1913920064734629889

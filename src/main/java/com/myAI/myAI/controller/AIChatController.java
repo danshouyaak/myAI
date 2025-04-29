@@ -1,18 +1,25 @@
 package com.myAI.myAI.controller;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.google.gson.Gson;
 import com.myAI.myAI.common.AIModel;
+import com.myAI.myAI.common.BaseResponse;
 import com.myAI.myAI.common.ErrorCode;
+import com.myAI.myAI.common.ResultUtils;
 import com.myAI.myAI.config.LangChainConfig;
 import com.myAI.myAI.exception.BusinessException;
 import com.myAI.myAI.manager.AiManager;
 
 import com.myAI.myAI.models.entity.Message;
+import com.myAI.myAI.models.entity.MessageFormat;
+import com.myAI.myAI.models.entity.MessageUser;
 import com.myAI.myAI.models.entity.User;
 import com.myAI.myAI.models.vo.AIRequestVO;
 import com.myAI.myAI.mq.MyMessageProducer;
+import com.myAI.myAI.service.ConversationService;
+import com.myAI.myAI.service.MessageService;
 import com.myAI.myAI.service.UserService;
 import com.zhipu.oapi.service.v4.model.ModelData;
 
@@ -44,12 +51,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
+import static com.myAI.myAI.constant.RedisConstant.REDISKEY;
 import static io.lettuce.core.pubsub.PubSubOutput.Type.message;
 import static org.springframework.messaging.simp.SimpMessageHeaderAccessor.getUser;
 
@@ -69,6 +75,13 @@ public class AIChatController {
 
     @Resource
     private LangChainConfig.AssistantUnique assistantUnique;
+    @Resource
+    private MessageService messageService;
+
+
+    @Resource
+    private ConversationService conversationService;
+
 
     /**
      * sse 流式调用
@@ -177,11 +190,13 @@ public class AIChatController {
         if (StringUtils.isBlank(content)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
-//        会话id
-//        String conversationId = requestVO.getConversationId();
-        if (StringUtils.isBlank(conversationId)) {
+
+        if (conversationId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "会话id不能为空");
         }
+//        return null;
+
+
 //        模型id
 //        long modelId = requestVO.getModelId();
         if (modelId <= 0) {
@@ -196,13 +211,13 @@ public class AIChatController {
         // 创建一个缓存变量来存储完整信息
         AtomicReference<StringBuilder> completeMessageBuilder = new AtomicReference<>(new StringBuilder());
 
-
 //        获取ai预设信息
         AIModel aiModel = new AIModel();
         String modelAIModelDescription = aiModel.getAIModel(modelId);
         System.out.println(modelAIModelDescription);
 
-        TokenStream stream = assistantUnique.stream(conversationId, content,modelAIModelDescription);
+
+        TokenStream stream = assistantUnique.stream(conversationId, content, modelAIModelDescription);
         return Flux.create(sink -> {
             stream.onPartialResponse(partialResponse -> {
                 System.out.println("partialResponse:" + partialResponse);
@@ -210,33 +225,36 @@ public class AIChatController {
                 sink.next(partialResponse);
             });
             stream.onCompleteResponse(response -> {
-//                发送完成
+                sink.complete();
 
+//                发送完成
                 // 在流完成时获取完整信息
                 String completeMessage = completeMessageBuilder.get().toString();
                 log.info("完整信息：{}", completeMessage);
 
 //                    封装用户发送信息
-                Message userMsg = new Message();
+                MessageUser userMsg = new MessageUser();
                 //         封装ai发送信息
-                Message AIMsg = new Message();
+                MessageUser AIMsg = new MessageUser();
                 userMsg.setConversationId(conversationId);
                 userMsg.setMessageType("user");
                 userMsg.setMessageContent(content);
                 userMsg.setSendTime(new Date());
                 userMsg.setAiId(modelId);
+                userMsg.setUserId(userId);
 
                 AIMsg.setConversationId(conversationId);
                 AIMsg.setMessageType("ai");
                 AIMsg.setMessageContent(completeMessage);
                 AIMsg.setSendTime(new Date());
                 AIMsg.setAiId(modelId);
+                AIMsg.setUserId(userId);
 
                 Gson gson = new Gson();
 //            发送给mq
                 myMessageProducer.sedMessage(gson.toJson(userMsg));
                 myMessageProducer.sedMessage(gson.toJson(AIMsg));
-                sink.complete();
+
                 System.out.println("完成");
             });
             stream.onError(error -> {
@@ -246,8 +264,7 @@ public class AIChatController {
         });
     }
 
-
-    @GetMapping("/test")
+    //    @GetMapping("/test")
     public Date GetHello() {
         // 获取当前时间并格式化为目标格式
         DateTime now = DateUtil.date();
@@ -267,22 +284,105 @@ public class AIChatController {
         return dateToSend;
     }
 
-    @GetMapping("/test2")
-    public Flux<String> GetHello2(@RequestParam(defaultValue = "你是谁") String message, @RequestParam(defaultValue = "1") Long memoryId) {
+    @GetMapping(value = "/test2", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> getHello2(@RequestParam(defaultValue = "你是谁") String message, @RequestParam(defaultValue = "1") Long memoryId) {
 
         return Flux.create(sink -> {
-            assistantUnique.stream(String.valueOf(memoryId), message, "你是一个AI助手").onPartialResponse(partialResponse -> {
-                System.out.println("partialResponse:" + partialResponse);
-                sink.next(partialResponse);
-            }).onCompleteResponse(partialResponse -> {
-                System.out.println("完成:" + partialResponse);
-            }).onError(partialResponse -> {
-                System.out.println("出错:" + partialResponse);
+            // 确保sink在回调中被正确操作
+            assistantUnique.stream(String.valueOf(memoryId), message, "你是一个AI助手").onPartialResponse(partial -> {
+                System.out.println("partial: " + partial);
+                if (!sink.isCancelled()) {
+                    sink.next(partial); // 发送数据片段
+                }
+            }).onCompleteResponse(complete -> {
+                System.out.println("完成: " + complete);
+                if (!sink.isCancelled()) {
+                    sink.complete(); // 关键：必须标记流完成
+                }
+            }).onError(error -> {
+                System.out.println("出错: " + error.getMessage());
+                if (!sink.isCancelled()) {
+                    sink.error(error); // 传递错误
+                }
             });
         });
     }
 
-    @GetMapping("/test3")
-    private void test3() throws IOException {
+    //    @GetMapping(value = "/test3")
+    public String StreamChatTest(String content) {
+
+        // 创建一个缓存变量来存储完整信息
+        AtomicReference<StringBuilder> completeMessageBuilder = new AtomicReference<>(new StringBuilder());
+
+//        获取ai预设信息
+        AIModel aiModel = new AIModel();
+        String modelAIModelDescription = "test";
+        System.out.println(modelAIModelDescription);
+
+        //                发送完成
+        // 在流完成时获取完整信息
+        String completeMessage = completeMessageBuilder.get().toString();
+        log.info("完整信息：{}", completeMessage);
+
+//                    封装用户发送信息
+        Message userMsg = new Message();
+        //         封装ai发送信息
+        Message AIMsg = new Message();
+        userMsg.setConversationId(String.valueOf(1));
+        userMsg.setMessageType("user");
+        userMsg.setMessageContent(content);
+        userMsg.setSendTime(new Date());
+        userMsg.setAiId(1L);
+
+        AIMsg.setConversationId(String.valueOf(1));
+        AIMsg.setMessageType("ai");
+        AIMsg.setMessageContent(completeMessage);
+        AIMsg.setSendTime(new Date());
+        AIMsg.setAiId(1L);
+
+        Message message1 = new Message();
+        message1.setConversationId(String.valueOf(1));
+        message1.setMessageType("user");
+        message1.setMessageContent("你是谁");
+        message1.setSendTime(new Date());
+        message1.setAiId(1L);
+
+        boolean save = messageService.save(message1);
+        if (!save) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "保存消息失败");
+        }
+
+        log.info("保存成功");
+        Gson gson = new Gson();
+
+
+//            发送给mq
+//        myMessageProducer.sedMessage(gson.toJson(userMsg));
+//        myMessageProducer.sedMessage(gson.toJson(AIMsg));
+
+
+        return "ok";
+    }
+
+    //    @GetMapping("/test4")
+    public BaseResponse<List<String>> task() {
+        log.info("定时任务执行了 把数据库更新到redis上，当前时间：{}", new Date());
+        List<Message> list = messageService.list();
+
+        if (CollUtil.isEmpty(list)) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "数据为空");
+        }
+        Gson gson = new Gson();
+        List<String> collect = list.stream().map(g -> {
+            MessageFormat messageFormat = new MessageFormat();
+            BeanUtils.copyProperties(g, messageFormat);
+            Date sendTime = g.getSendTime();
+            String formatTime = DateUtil.format(sendTime, "yyyy-MM-dd HH:mm:ss");
+            messageFormat.setSendTime(formatTime);
+            return gson.toJson(messageFormat);
+        }).collect(Collectors.toList());
+
+        log.info("定时任务结束了 redis已经是最新状态，当前时间：{}", new Date());
+        return ResultUtils.success(collect);
     }
 }

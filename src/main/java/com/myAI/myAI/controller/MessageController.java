@@ -63,7 +63,6 @@ public class MessageController {
             ResultUtils.success(endResult);
         }
 
-
         String key = REDISKEYMESSAGE + conversationId;
 //        查找数据库
         QueryWrapper<Message> messageQueryWrapper = new QueryWrapper<>();

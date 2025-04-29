@@ -38,7 +38,6 @@ public class ConversationController {
     @Autowired
     private Gson gson;
 
-
     @GetMapping("/getConversation/list")
     public BaseResponse<List<Conversation>> getConversationList(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
@@ -60,6 +59,9 @@ public class ConversationController {
         QueryWrapper<Conversation> conversationQueryWrapper = new QueryWrapper<>();
         conversationQueryWrapper.eq("userId", userId);
         List<Conversation> mysqlResult = conversationService.list(conversationQueryWrapper);
+        if (CollUtil.isEmpty(mysqlResult)) {
+            return ResultUtils.success(mysqlResult);
+        }
 
         List<String> collect = mysqlResult.stream().map(s -> gson.toJson(s)).collect(Collectors.toList());
 
@@ -71,7 +73,7 @@ public class ConversationController {
     }
 
     @PostMapping("/addConversation")
-    public BaseResponse<Boolean> addConversation(@RequestBody ConversationRequest conversationRequest,HttpServletRequest request) {
+    public BaseResponse<String> addConversation(@RequestBody ConversationRequest conversationRequest,HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
@@ -88,6 +90,6 @@ public class ConversationController {
 
         String key = REDISKEYCONVERSATION + loginUser.getId();
         redisTemplate.opsForList().leftPush(key, gson.toJson(conversation));
-        return ResultUtils.success(save);
+        return ResultUtils.success(conversation.getConversationId());
     }
 }
