@@ -21,16 +21,13 @@ server:
   port: 8024
   servlet:
     session:
-      timeout: 604800  # 会话超时7天（单位：秒）
       cookie:
+        http-only: true
+        max-age: 2592000
         name: JSESSIONID
-        max-age: 2592000  # Cookie有效期30天
-        http-only: true   # 推荐开启
-        secure: true      # 生产环境必须true (HTTPS)
-        same-site: lax    # 或 none (跨站场景)
+        secure: false
+        same-site: lax
         path: /
-#        domain: yourdomain.com # 明确指定域名
-
 
 
 # ??????
