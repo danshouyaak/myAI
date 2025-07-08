@@ -75,13 +75,13 @@ public class OtherAIController {
 
 
     /**
-     * 匹配向量
+     * 匹配向量 测试sse接口
      *
      * @param content
      * @param memoryId
      * @return
      */
-    @GetMapping(value = "/stream_chat", produces = "text/stream;charset=UTF-8")
+//    @GetMapping(value = "/stream_chat", produces = "text/stream;charset=UTF-8")
     public Flux<String> GetHello2(@RequestParam(defaultValue = "你是谁") String content, @RequestParam(defaultValue = "1") Long memoryId) {
 
         // 读取

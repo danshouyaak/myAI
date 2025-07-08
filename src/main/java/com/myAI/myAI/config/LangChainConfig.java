@@ -56,7 +56,7 @@ public class LangChainConfig {
     public ZhipuAiStreamingChatModel zhipuAiStreamingChatModel() {
         return  ZhipuAiStreamingChatModel.builder()
                 .apiKey("7d87de8424d64f239da60fcd2fbf8ea8.mhKGQxgcVD21XoSW")
-//                .model("glm-4")
+//                .model("glm-4")  // 需要注释不然会有bug
                 .logRequests(true)
                 .logResponses(true)
                 .callTimeout(Duration.ofSeconds(60))

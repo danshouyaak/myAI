@@ -12,7 +12,10 @@ import dev.langchain4j.model.output.Response;
 import java.net.URI;
 import java.time.Duration;
 
-
+/*
+*
+* 测试代码
+* */
 public class SearchApiTool {
     public static void main(String[] args) {
         ChatLanguageModel zhipuAiChatModel = ZhipuAiChatModel.builder()

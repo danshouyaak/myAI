@@ -6,6 +6,7 @@ import com.myAI.myAI.common.ResultUtils;
 import com.myAI.myAI.exception.BusinessException;
 import com.myAI.myAI.models.dto.UserLoginRequest;
 import com.myAI.myAI.models.dto.UserRegisterRequest;
+import com.myAI.myAI.models.dto.UserUpdateRequest;
 import com.myAI.myAI.models.entity.User;
 import com.myAI.myAI.models.vo.LoginUserVO;
 import com.myAI.myAI.mq.MyMessageProducer;
@@ -105,12 +106,29 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
+    /**
+     * 用户更新
+     *
+     * @param request
+     * @return
+     */
+    @PostMapping("/update")
+    public BaseResponse<Boolean> userUpdate(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String userAvatar = userUpdateRequest.getUserAvatar();
+        String userProfile = userUpdateRequest.getUserProfile();
+        String userName = userUpdateRequest.getUserName();
 
-    @GetMapping("/test")
-    public String test(String msg) {
-//        userMqProducer.sendMsg(UserMqConstant.USER_EXCHANGE_NAME,UserMqConstant.USER_ROUTING_KEY,msg);
-//        myMessageProducer.sedMessage(msg);
-        log.info("test");
-        return "test";
+        if (userName.length() > 16 || userName.length() < 2) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名长度不符合要求");
+        }
+        if (userProfile.length() > 200) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户简介长度不符合要求");
+        }
+
+        boolean result = userService.userUpdate(userName, userAvatar, userProfile, request);
+        return ResultUtils.success(result);
     }
 }

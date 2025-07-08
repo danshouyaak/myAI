@@ -1,6 +1,7 @@
 package com.myAI.myAI.service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.myAI.myAI.common.ErrorCode;
 import com.myAI.myAI.exception.BusinessException;
@@ -145,6 +146,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return true;
+    }
+
+    @Override
+    public boolean userUpdate(String userName, String userAvatar, String userProfile, HttpServletRequest request) {
+//        判断是否登录
+        User loginUser = getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("id", loginUser.getId());
+        updateWrapper.set("userName", userName);
+        updateWrapper.set("userAvatar", userAvatar);
+        updateWrapper.set("userProfile", userProfile);
+        return this.update(updateWrapper);
     }
 
 

@@ -52,6 +52,15 @@ public interface UserService extends IService<User> {
     boolean userLogout(HttpServletRequest request);
 
     /**
+     * 用户更新信息
+     *
+     * @param request
+     * @return
+     */
+    boolean userUpdate(String userName, String userAvatar,String userProfile,HttpServletRequest request);
+
+
+    /**
      * 获取脱敏的用户信息
      *
      * @param user
