@@ -127,7 +127,6 @@ public class UserController {
         if (userProfile.length() > 200) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户简介长度不符合要求");
         }
-
         boolean result = userService.userUpdate(userName, userAvatar, userProfile, request);
         return ResultUtils.success(result);
     }

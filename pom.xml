@@ -185,6 +185,13 @@
             <artifactId>langchain4j-document-parser-apache-tika</artifactId>
             <version>1.0.0-beta3</version>
         </dependency>
+
+<!--        minio-->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.6</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>

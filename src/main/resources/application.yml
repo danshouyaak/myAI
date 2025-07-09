@@ -51,8 +51,7 @@ mybatis-plus:
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
 
-ai:
-  apiKey: "7d87de8424d64f239da60fcd2fbf8ea8.mhKGQxgcVD21XoSW"
+
 
 langchain4j:
   community:
@@ -67,6 +66,18 @@ langchain4j:
 
       embedding-model:
         api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
+
+# minio
+minio:
+  config:
+    url: http://47.119.128.91:19000 #ip地址
+    accessKey: 8mPfWlz9U7tCokFqyj9E #  账号
+    secretKey: 6vufDcEbmd9zhSjICYoYBZpfEwIRgiDliwDgEODu #  密码
+    secure: false #如果是true，则用的是https而不是http,默认值是true
+    bucketName: "fileupload"  # 桶的名字 相当于文件夹
+
+ai:
+  apiKey: "7d87de8424d64f239da60fcd2fbf8ea8.mhKGQxgcVD21XoSW"
 
 BAIDU_MAP_API_KEY: "0QXrtk2dl85xQAjsjhfXw9A1dSTSzLQ3"
 #sk-b8cb511c4eda49d1a658d33e37eb2f53
