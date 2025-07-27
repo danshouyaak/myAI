@@ -1,13 +1,27 @@
 package com.myAI.myAI.service;
 
-import com.myAI.myAI.models.entity.Ai;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.myAI.myAI.models.entity.Ai;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
-* @author yu
-* @description 针对表【ai】的数据库操作Service
-* @createDate 2025-04-24 09:01:46
-*/
+ * AI服务接口
+ */
 public interface AiService extends IService<Ai> {
 
+    /**
+     * AI对话（普通模式）
+     *
+     * @param message 用户输入的消息
+     * @return AI的回复
+     */
+    String doChat(String message);
+
+    /**
+     * AI对话（流式输出）
+     *
+     * @param message 用户输入的消息
+     * @return SSE发射器
+     */
+    SseEmitter doChatStream(String message);
 }

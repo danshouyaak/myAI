@@ -1,0 +1,20 @@
+package com.myAI.myAI.langchain4j.tools;
+
+
+import dev.langchain4j.agent.tool.Tool;
+import org.springframework.stereotype.Component;
+
+/**
+ * 终止工具（作用是让自主规划智能体能够合理地中断）
+ */
+@Component
+public class TerminateTool {
+
+    @Tool("""
+            Terminate the interaction when the request is met OR if the assistant cannot proceed further with the task.
+            "When you have finished all the tasks, call this tool to end the work.
+            """)
+    public String doTerminate() {
+        return "任务结束";
+    }
+}

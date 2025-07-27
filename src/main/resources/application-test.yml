@@ -1,0 +1,106 @@
+# ================================
+# 测试环境配置
+# ================================
+
+spring:
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/my_ai_test
+    username: root
+    password: 5mn2FBt3zZFWCZSH
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      connection-timeout: 30000
+  rabbitmq:
+    host: localhost
+    port: 5672
+    password: guest
+    username: guest
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 1
+server:
+  address: 0.0.0.0
+  port: 8024
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        max-age: 2592000
+        name: JSESSIONID
+        secure: false
+        same-site: lax
+        path: /
+
+# ??????
+knife4j:
+  enable: true
+  openapi:
+    title: "接口文档"
+    version: 1.0
+    group:
+      default:
+        api-rule: package
+        api-rule-resources:
+          - com.myAI.myAI.controller
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete # 全局逻辑删除的实体字段名
+      logic-delete-value: 1 # 逻辑已删除值（默认为 1）
+      logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+
+langchain4j:
+  community:
+    dashscope:
+      chat-model:
+        api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
+        model-name: "qwen-plus"
+
+      streaming-chat-model:
+        api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
+        model-name: "qwen-plus"
+
+      embedding-model:
+        api-key: "sk-83365e2d612a4576b14ba1f823af2b10"
+
+# minio
+minio:
+  config:
+    url: http://47.119.128.91:19000 #ip地址
+    accessKey: 8mPfWlz9U7tCokFqyj9E #  账号
+    secretKey: 6vufDcEbmd9zhSjICYoYBZpfEwIRgiDliwDgEODu #  密码
+    secure: false #如果是true，则用的是https而不是http,默认值是true
+    bucketName: "fileupload" # 桶的名字 相当于文件夹
+
+ai:
+  apiKey: "7d87de8424d64f239da60fcd2fbf8ea8.mhKGQxgcVD21XoSW"
+
+BAIDU_MAP_API_KEY: "0QXrtk2dl85xQAjsjhfXw9A1dSTSzLQ3"
+#sk-b8cb511c4eda49d1a658d33e37eb2f53
+#BOCHA_API_KEY: "sk-b8cb511c4eda49d1a658d33e37eb2f53"
+
+#37109a07-e86e-4a7a-b95c-153af5509ab7
+SERCH_API_KEY: "iEhqbAsgcdzMzuXD6ALa9yU3" # searchapi
+search:
+  engine: "baidu"
+  apiKey: ${SERCH_API_KEY}
+
+# MCP 配置（测试环境）
+mcp:
+  mcpServers:
+    web-search:
+      transport:
+        type: streamableHttp
+        url: http://localhost:3000/mcp
+    web-search-sse:
+      transport:
+        type: sse
+        url: http://localhost:3000/sse

@@ -1,0 +1,102 @@
+# ================================
+# 开发环境配置
+# ================================
+
+spring:
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://dev-server:3306/my_ai_dev
+    username: dev_user
+    password: dev_password
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      connection-timeout: 30000
+
+  # Redis 配置
+  redis:
+    host: dev-redis-server
+    port: 6379
+    password: dev_redis_password
+    database: 2
+    timeout: 5000ms
+    lettuce:
+      pool:
+        max-active: 16
+        max-idle: 8
+        min-idle: 2
+
+  # RabbitMQ 配置
+  rabbitmq:
+    host: dev-rabbitmq-server
+    port: 5672
+    username: dev_user
+    password: dev_password
+    virtual-host: /dev
+
+# 服务器配置
+server:
+  address: 0.0.0.0
+  port: 8024
+
+# 日志配置
+logging:
+  level:
+    com.myAI.myAI: INFO
+    org.springframework.web: INFO
+    org.mybatis: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/myai-dev.log
+
+# MyBatis Plus 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# LangChain4j 配置
+langchain4j:
+  community:
+    dashscope:
+      chat-model:
+        api-key: "dev-api-key"
+        model-name: "qwen-plus"
+      streaming-chat-model:
+        api-key: "dev-api-key"
+        model-name: "qwen-plus"
+      embedding-model:
+        api-key: "dev-api-key"
+
+# MinIO 配置
+minio:
+  config:
+    url: http://dev-minio-server:9000
+    accessKey: dev_access_key
+    secretKey: dev_secret_key
+    secure: false
+    bucketName: "dev-fileupload"
+
+# AI 配置
+ai:
+  apiKey: "dev-ai-api-key"
+
+# 搜索配置
+BAIDU_MAP_API_KEY: "dev-baidu-map-key"
+SERCH_API_KEY: "dev-search-key"
+search:
+  engine: "baidu"
+  apiKey: ${SERCH_API_KEY}
+
+# MCP 配置（开发环境）
+mcp:
+  mcpServers:
+    web-search:
+      transport:
+        type: streamableHttp
+        url: http://dev-mcp-server:3000/mcp
+    web-search-sse:
+      transport:
+        type: sse
+        url: http://dev-mcp-server:3000/sse

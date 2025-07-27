@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### DevTools ###
+.restart
+spring-devtools.properties
+
+### 热重载临时文件 ###
+*.tmp
+*.bak

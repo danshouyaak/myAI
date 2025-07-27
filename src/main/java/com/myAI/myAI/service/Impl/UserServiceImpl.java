@@ -4,11 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.myAI.myAI.common.ErrorCode;
+import com.myAI.myAI.constant.OperationType;
 import com.myAI.myAI.exception.BusinessException;
 import com.myAI.myAI.mapper.UserMapper;
 import com.myAI.myAI.models.entity.User;
 import com.myAI.myAI.models.vo.LoginUserVO;
 import com.myAI.myAI.models.vo.UserVO;
+import com.myAI.myAI.service.OperationLogService;
 import com.myAI.myAI.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +18,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import static com.myAI.myAI.constant.UserConstant.USER_LOGIN_STATE;
@@ -23,6 +26,9 @@ import static com.myAI.myAI.constant.UserConstant.USER_LOGIN_STATE;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+
+    @Resource
+    private OperationLogService operationLogService;
 
     /**
      * 盐值，混淆密码
@@ -94,6 +100,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 3. 记录用户的登录态
 
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        
+        // 记录登录日志
+        operationLogService.asyncRecordOperationLog(
+            user.getId(),
+            OperationType.USER_LOGIN,
+            "用户登录成功",
+            true,
+            String.valueOf(user.getId()),
+            request
+        );
+        
         return this.getLoginUserVO(user);
     }
 
@@ -143,8 +160,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (request.getSession().getAttribute(USER_LOGIN_STATE) == null) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
         }
+        
+        // 获取当前登录用户
+        User user = getLoginUser(request);
+        
         // 移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
+        
+        // 记录注销日志
+        operationLogService.asyncRecordOperationLog(
+            user.getId(),
+            OperationType.USER_LOGOUT,
+            "用户注销成功",
+            true,
+            String.valueOf(user.getId()),
+            request
+        );
+        
         return true;
     }
 

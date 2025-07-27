@@ -1,0 +1,123 @@
+# ================================
+# 生产环境配置
+# ================================
+
+spring:
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://prod-db-server:3306/my_ai_prod
+    username: ${DB_USERNAME:prod_user}
+    password: ${DB_PASSWORD:prod_password}
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # Redis 配置
+  redis:
+    host: ${REDIS_HOST:prod-redis-server}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:prod_redis_password}
+    database: 0
+    timeout: 5000ms
+    lettuce:
+      pool:
+        max-active: 32
+        max-idle: 16
+        min-idle: 8
+
+  # RabbitMQ 配置
+  rabbitmq:
+    host: ${RABBITMQ_HOST:prod-rabbitmq-server}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:prod_user}
+    password: ${RABBITMQ_PASSWORD:prod_password}
+    virtual-host: /prod
+
+# 服务器配置
+server:
+  address: 0.0.0.0
+  port: ${SERVER_PORT:8024}
+  servlet:
+    session:
+      cookie:
+        secure: true # 生产环境启用 HTTPS
+        same-site: strict
+
+# 日志配置
+logging:
+  level:
+    com.myAI.myAI: INFO
+    org.springframework.web: WARN
+    org.mybatis: WARN
+    org.springframework.security: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: /var/log/myai/myai-prod.log
+    max-size: 100MB
+    max-history: 30
+
+# MyBatis Plus 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl # 生产环境不显示 SQL
+
+# LangChain4j 配置
+langchain4j:
+  community:
+    dashscope:
+      chat-model:
+        api-key: ${LANGCHAIN_API_KEY:prod-api-key}
+        model-name: "qwen-max"
+      streaming-chat-model:
+        api-key: ${LANGCHAIN_API_KEY:prod-api-key}
+        model-name: "qwen-max"
+      embedding-model:
+        api-key: ${LANGCHAIN_API_KEY:prod-api-key}
+
+# MinIO 配置
+minio:
+  config:
+    url: ${MINIO_URL:https://prod-minio-server:9000}
+    accessKey: ${MINIO_ACCESS_KEY:prod_access_key}
+    secretKey: ${MINIO_SECRET_KEY:prod_secret_key}
+    secure: true
+    bucketName: "prod-fileupload"
+
+# AI 配置
+ai:
+  apiKey: ${AI_API_KEY:prod-ai-api-key}
+
+# 搜索配置
+BAIDU_MAP_API_KEY: ${BAIDU_MAP_API_KEY:prod-baidu-map-key}
+SERCH_API_KEY: ${SEARCH_API_KEY:prod-search-key}
+search:
+  engine: "baidu"
+  apiKey: ${SERCH_API_KEY}
+
+# MCP 配置（生产环境）
+mcp:
+  mcpServers:
+    web-search:
+      transport:
+        type: streamableHttp
+        url: ${MCP_WEB_SEARCH_URL:https://prod-mcp-server:3000/mcp}
+    web-search-sse:
+      transport:
+        type: sse
+        url: ${MCP_WEB_SEARCH_SSE_URL:https://prod-mcp-server:3000/sse}
+
+# 安全配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized

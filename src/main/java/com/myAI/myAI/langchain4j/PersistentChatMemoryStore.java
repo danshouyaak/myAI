@@ -1,12 +1,12 @@
-package com.myAI.myAI.langchain;
+package com.myAI.myAI.langchain4j;
 
-import com.myAI.myAI.config.RedisConfig;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static dev.langchain4j.data.message.ChatMessageDeserializer.messagesFromJson;
 import static dev.langchain4j.data.message.ChatMessageSerializer.messagesToJson;
@@ -35,7 +35,8 @@ public class PersistentChatMemoryStore implements ChatMemoryStore {
     @Override
     public void updateMessages(Object memoryId, List<ChatMessage> messages) {
         String json = messagesToJson(messages); // 序列化消息
-        redisTemplate.opsForValue().set((String) memoryId, json);
+//        设置过期时间三十分钟
+        redisTemplate.opsForValue().set((String) memoryId, json,30, TimeUnit.MINUTES);
     }
 
     @Override
