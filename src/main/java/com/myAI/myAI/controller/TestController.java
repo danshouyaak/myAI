@@ -26,6 +26,13 @@ import java.util.ArrayList;
 @RequestMapping("/test")
 @Slf4j
 public class TestController {
+    /**
+     * web搜索
+     */
+
+
+    @Resource
+    LangChainConfig.AssistantTest AssistantTest;
     @Resource
     private LangChainConfig.AssistantUnique assistantUnique;
 
@@ -43,6 +50,7 @@ public class TestController {
      * 4. 测试接口是否可以调用第三方接口，并且返回数据，并且返回数据的格式是json
      * 5. 测试接口是否可以调用第三方接口，并且返回数据，并且返回数据的格式是json，并且返回数据的格式是json
      * 6. 测试接口是否可以调用第三方接口，并且返回数据，并且返回数据的格式是json，并且返回数据的格式是json，并且返回数据的格式是json
+     *
      * @param text
      * @return
      * @throws IOException
@@ -64,7 +72,7 @@ public class TestController {
             if (response.isSuccessful() && response.body() != null) {
                 log.info("请求成功 response {}", response);
                 String body = response.body().string();
-                System.out.println("=================="+body);
+                System.out.println("==================" + body);
                 return ResultUtils.success(body);
             } else {
                 System.err.println("HTTP 错误码: " + response.code());
@@ -74,14 +82,6 @@ public class TestController {
         }
         return ResultUtils.error(ErrorCode.SYSTEM_ERROR);
     }
-
-    /**
-     * web搜索
-     */
-
-
-    @Resource
-    LangChainConfig.AssistantTest AssistantTest;
 
     @GetMapping(value = "/test3")
     public BaseResponse<String> test3(@RequestParam(defaultValue = "上网分析一下最近的ai趋势") String text) throws IOException {

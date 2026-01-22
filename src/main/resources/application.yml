@@ -2,7 +2,7 @@ spring:
   application:
     name: myAI
   profiles:
-    active: local # 默认使用本地开发环境
+    active: test # 默认使用本地开发环境
   # DevTools 热重载配置（仅开发环境生效）
   devtools:
     restart:
